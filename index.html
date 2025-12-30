@@ -1,0 +1,148 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ACS Agricultural Science & Technology</title>
+    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="fonts.googleapis.com" rel="stylesheet">
+</head>
+
+<body>
+    <main>
+        <section id="custom-page-silverchair" class="custom-page-silverchair">
+            <div class="sc-header sc-header__wrapper" id="sc-header-wrapper" aria-labelledby="sc-header-title">
+                <div class="sc-custom-wrapper-header column">
+                    <h1 class="sc-header__title" id="sc-header__title" aria-live="polite"></h1>
+                </div>
+            </div>
+
+            <section class="sc-mdw" id="sc-mdw" aria-label="Article metadata">
+                <div class="sc-custom-wrapper-mdw column">
+                    <div class="sc-mdw__left" id="sc-mdw__left" aria-label="Metadata details">
+                        <section class="sc-mdw__blurb" id="sc-mdw__blurb" aria-label="Journal blurb">
+                            <p class="sc-mdw__blurb-value" id="sc-mdw__blurb-value" aria-live="polite"></p>
+                        </section>
+                        <section class="sc-editors" id="sc-editors" aria-label="Editorial board">
+
+                            <p class="sc-editors__line">
+                                <span class="sc-editors__eic-label" id="sc-editors__eic-label">
+                                    Editor-in-Chief:
+                                </span>
+                                <span class="sc-editors__eic-value" id="sc-editors__eic-value"
+                                    aria-labelledby="sc-editors__eic-label" aria-live="polite">
+                                </span>
+                            </p>
+                            <p class="sc-editors__line">
+                                <span class="sc-editors__de-label" id="sc-editors__de-label">
+                                    Deputy Editor:
+                                </span>
+                                <span class="sc-editors__de-value" id="sc-editors__de-value"
+                                    aria-labelledby="sc-editors__de-label" aria-live="polite">
+                                </span>
+                            </p>
+                            <p class="sc-editors__line">
+                                <a class="sc-editors__link" id="sc-editors__link" tabindex="0"
+                                    aria-label="View Editors & Editorial Board">
+                                    View Editors &amp; Editorial Board
+                                </a>
+                            </p>
+                        </section>
+
+                        <section class="sc-metrics" id="sc-metrics" aria-label="Journal metrics">
+                            <p class="sc-editors__line sc-metrics__line">
+                                <strong class="sc-metrics__impact-label" id="sc-metrics__impact-label">
+                                    2 Year Impact Factor:
+                                </strong>
+
+
+                                <span class="sc-metrics__impact-value" id="sc-metrics__impact-value"
+                                    aria-labelledby="sc-metrics__impact-label" aria-live="polite">
+                                </span>
+                                &nbsp;&nbsp;&nbsp;
+
+                                <strong class="sc-metrics__cites-label" id="sc-metrics__cites-label">
+                                    Citations:
+                                </strong>
+                                <span class="sc-metrics__cites-value" id="sc-metrics__cites-value"
+                                    aria-labelledby="sc-metrics__cites-label" aria-live="polite">
+                                </span>
+                                &nbsp;&nbsp;&nbsp;
+                                <strong class="sc-metrics__citescore-label" id="sc-metrics__citescore-label">
+                                    CiteScore:
+                                </strong>
+                                <span class="sc-metrics__citescore-value" id="sc-metrics__citescore-value"
+                                    aria-labelledby="sc-metrics__citescore-label" aria-live="polite">
+                                </span>
+                            </p>
+
+                            <p class="sc-metrics__line sc-editors__line">
+                                <a href="/journal-metrics" class="sc-editors__link">
+                                    View All
+                                    <span class="sc-metrics__year" aria-live="polite"></span>
+                                    Journal Metrics
+                                </a>
+                            </p>
+                        </section>
+
+                        <div class="sc-cta" aria-label="Actions">
+                            <a class="sc-cta__submit-wrap" href="https://publish.acs.org/" target="_blank"
+                                rel="noopener">
+                                <button class="sc-cta__submit" type="button" aria-label="Submit manuscript">
+                                    Submit Manuscript
+                                </button>
+                            </a>
+
+                            <a rel="noopener" class="sc-cta__alert-wrap" href="https://preferences.acs.org/"
+                                target="_blank">
+                                <button class="sc-cta__alerts" type="button" aria-label="Get alerts">
+                                    <icon class="icon-alert-bell"></icon>
+                                    Get Alerts
+                                </button>
+                            </a>
+
+                            <div id="sc-reljournals" class="sc-reljournals" aria-label="Related journals">
+                                <div class="sc-custom-select" id="sc-custom-select" aria-expanded="false"
+                                    aria-haspopup="listbox" aria-controls="sc-select__menu"
+                                    aria-label="Related journals dropdown">
+                                    <button name="sc-related-journals" id="sc-related-journals"
+                                        class="sc-related-journals sc-select__toggle" aria-haspopup="listbox"
+                                        aria-expanded="false" aria-controls="sc-select__menu"
+                                        aria-label="Toggle related journals" aria-describedby="sc-select-value"
+                                        type="button">
+                                        <span class="sc-select__value" id="sc-select-value">
+                                            Related Journals
+                                        </span>
+                                        <span id="sc-select__arrow" class="sc-select__arrow" aria-hidden="true">
+                                            <!-- <img id="arrow_img" src="./assets/DownArrow.svg" alt="Arrow"
+                                                class="sc-select__arrow-img" /> -->
+                                                <span class="sc-select__arrow-img-wrapper">
+                                                    <icon class="sc-select__arrow-img" id="sc-select__arrow-img"></icon>
+                                                </span>
+                                        </span>
+                                    </button>
+                                    <ul onclick="relatedJournalValueUpdate(event)" id="sc-select__menu"
+                                        class="sc-select__menu" aria-label="Related journals" tabindex="-1">
+                                    </ul>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="sc-mdw__right">
+                        <section id="silverchair-widget-latest-issue-info">
+                            <h2>Silverchair Widget</h2>
+                            <p>Goes here</p>
+                        </section>
+                    </div>
+                </div>
+            </section>
+        </section>
+    </main>
+    <script src="./script.js"></script>
+</body>
+
+</html>
