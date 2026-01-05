@@ -1,13 +1,52 @@
-let route = "aabmcb"; // change as needed
+let JSON_DIR;
+let route = "aaemcq";
+let jpcFilter = "";
+let environment = "local";
 
-const CORS_PROXY = "https://corsproxy.io/?url=";
-const BASE_URL = "https://pubs.acs.org/pb-assets/json/";
-const JSON_DIR = "./json";
-const INFO_FILE = `${JSON_DIR}/journal-info.json`; //CORS_PROXY+BASE_URL+'journal-info.json';
+if (route === "jpcafh" || route === "jpcbfk" || route === "jpccck") {
+  jpcFilter = route;
+  route = "jpchax";
+}
+if (environment === "local") {
+  JSON_DIR = "./json";
+} else {
+  JSON_DIR = "/DocumentLibrary/json";
+}
+const INFO_FILE = `${JSON_DIR}/journal-info.json`;
 const METRICS_FILE = `${JSON_DIR}/journal_metrics.json`;
 const RELATED_JOURNALS = `${JSON_DIR}/relatedJournals.json`;
+const ROLE_SORT = `${JSON_DIR}/role_sort.json`;
+const MASTHEAD_EXCLUSIONS = `${JSON_DIR}/masthead_exclusions.json`;
+
 const MASTHEAD_BASE =
-  "https://raw.githubusercontent.com/DSCO-Support/JournalMastheads/refs/heads/main/mastheads";
+  "https://raw.githubusercontent.com/DSCO-Support/JournalMastheads/refs/heads/main/mastheads/";
+const BASE_URL = "https://pubs.acs.org";
+const CORS_PROXY = "https://corsproxy.io/?url=";
+
+async function getMastheadJson(journalCoden, jpcFilter) {
+  try {
+    const response = await fetch(MASTHEAD_BASE + journalCoden + ".json");
+    const dataJCI = await response.json();
+    const roleSortOrder = await getRoleSort();
+    const exclusions = await getExclusions(journalCoden);
+    let roleList = await createRoles(dataJCI["data"], roleSortOrder);
+    let sortedJCI = await sortByLastName(
+      dataJCI["data"],
+      jpcFilter,
+      journalCoden
+    );
+    // let display = await displayRoles(
+    //   roleList,
+    //   roleSortOrder,
+    //   sortedJCI,
+    //   journalCoden,
+    //   exclusions[0],
+    //   exclusions[1]
+    // );
+  } catch (error) {
+    console.error("Error fetching " + journalCoden + ".json : ", error);
+  }
+}
 
 function updateEditorsHref() {
   const el = document.getElementById("viewEditorsMainSection");
@@ -87,6 +126,7 @@ function updateEditorInfo(person, editorInfo, role) {
       sideProfileImageId: "sc-editor__avatar__editorInChiefProfileIcon",
       sideInstitutionName: "chiefUnivName",
       sideCountryName: "chiefCountry",
+      emailId: "chiefEmail"
     },
     "Deputy Editor": {
       mainNameId: "sc-editors__de-value",
@@ -95,6 +135,7 @@ function updateEditorInfo(person, editorInfo, role) {
       sideProfileImageId: "deputyEditorProfileIcon",
       sideInstitutionName: "deputyUnivName",
       sideCountryName: "deputyCountry",
+      emailId: "deputyEmail"
     },
   };
 
@@ -113,10 +154,12 @@ function updateEditorInfo(person, editorInfo, role) {
     setText(cfg.sideNameId, name || "—");
     setImage(editorInfo, name, cfg);
   }
+
   if (person) {
     setWebsiteLink(cfg.sideNameId, person);
     setText(cfg.sideInstitutionName, person["Institution Name"]);
     setText(cfg.sideCountryName, person["Country"]);
+    setText(cfg.emailId, person["Email"]);
   }
 }
 
@@ -283,7 +326,7 @@ async function renderJournalForCoden(code, indexes) {
   document.querySelectorAll(".sc-metrics__year").forEach((i) => {
     i.textContent = metricsIndex.journal_metrics.year;
   });
-  setIndexedAndAbstractedData(info);
+  //setIndexedAndAbstractedData(info);
 
   await loadMastheadAndRenderEditors(code, editorInfo);
 }
@@ -298,15 +341,15 @@ function setBlurbValue(metrics, info) {
   el.append(emElement, tailNode);
 }
 
-function setIndexedAndAbstractedData(info) {
-  const indexedList = document.getElementById("indexedList");
-  indexedList.innerHTML = "";
-  info.indexAbstract.forEach((abstract) => {
-    const listItem = document.createElement("li");
-    listItem.textContent = abstract;
-    indexedList.appendChild(listItem);
-  });
-}
+// function setIndexedAndAbstractedData(info) {
+//   const indexedList = document.getElementById("indexedList");
+//   indexedList.innerHTML = "";
+//   info.indexAbstract.forEach((abstract) => {
+//     const listItem = document.createElement("li");
+//     listItem.textContent = abstract;
+//     indexedList.appendChild(listItem);
+//   });
+// }
 
 function setRelatedJournalOptions(relatedJournals, code) {
   const select = document.getElementById("sc-select__menu");
@@ -339,6 +382,7 @@ function setText(id, value) {
   const el = document.getElementById(id);
   if (el) el.textContent = value;
 }
+
 function setPreJSON(id, obj) {
   const el = document.getElementById(id);
   if (el) el.textContent = JSON.stringify(obj, null, 2);
@@ -395,8 +439,6 @@ function redirectToCoden(event) {
   }
 }
 
-render(route);
-
 document.addEventListener("DOMContentLoaded", () => {
   const customSelects = document.querySelectorAll(".sc-custom-select");
 
@@ -442,3 +484,757 @@ function formatNumber(number) {
   const formattedNumber = parseInt(number).toLocaleString("en-US");
   return formattedNumber;
 }
+
+async function getRoleSort() {
+  try {
+    const response = await fetch(ROLE_SORT);
+    const dataRoleSort = await response.json();
+    let roleSortOrder = [];
+    dataRoleSort.sort(function (a, b) {
+      let x = a["Role Sort Number"],
+        y = b["Role Sort Number"];
+      return x < y ? -1 : x > y ? 1 : 0;
+    });
+    return dataRoleSort;
+  } catch (error) {
+    console.error("Error fetching masthead-role-sort.json :", error);
+  }
+}
+
+async function getExclusions(journalCoden) {
+  try {
+    const response = await fetch(MASTHEAD_EXCLUSIONS);
+    const dataExclusions = await response.json();
+    let excludeCurrentIssue = false;
+    let eabOnly = false;
+    let exclusionsArray = [];
+
+    if (dataExclusions[journalCoden]) {
+      if (dataExclusions[journalCoden]["currentIssue"] === true) {
+        excludeCurrentIssue = true;
+        // console.log("excludeCurrentIssue: " + excludeCurrentIssue);
+      }
+      if (dataExclusions[journalCoden]["allExceptEAB"] === true) {
+        eabOnly = true;
+        // console.log("eabOnly: " + eabOnly);
+      }
+    }
+    exclusionsArray = [excludeCurrentIssue, eabOnly];
+    return exclusionsArray;
+  } catch (error) {
+    console.error("Error fetching masthead-exclusions.json :", error);
+  }
+}
+
+async function getJPCfilter() {
+  try {
+    const response = await fetch(
+      CORS_PROXY +
+        BASE_URL +
+        "/pb-assets/json/masthead/jpc-filter-1712774473063.json"
+    );
+    const dataJPCfilter = await response.json();
+    return dataJPCfilter;
+  } catch (error) {
+    console.error("Error fetching jpc-filter.json :", error);
+  }
+}
+
+async function createRoles(arrayEditors, arraySortOrder) {
+  let listOfRoles = [];
+  let roleListSorted = [];
+
+  // create listOfRoles array of available editor roles in current journal
+  for (i = 0; i < arrayEditors.length; i++) {
+    if (arrayEditors[i]["Masthead Category"] === "Editor Emerita") {
+      arrayEditors[i]["Masthead Category"] = "Editor Emeritus";
+    }
+    if (listOfRoles.indexOf(arrayEditors[i]["Masthead Category"]) === -1) {
+      listOfRoles.push(arrayEditors[i]["Masthead Category"]);
+    }
+  }
+
+  // sort listOfRoles according to defined masthead role sort order display
+  arraySortOrder.forEach(function (sortRole) {
+    let found = false;
+    listOfRoles = listOfRoles.filter(function (currentRole) {
+      if (!found && currentRole == sortRole["Masthead Category"]) {
+        roleListSorted.push(currentRole);
+        found = true;
+        return false;
+      } else return true;
+    });
+  });
+
+  return roleListSorted;
+}
+
+async function sortByLastName(arrayEditors, jpcFilter, journalCoden) {
+  // arrayEditors.sort(function(a,b){
+  //     // return a["Last Name"].toLowerCase().localeCompare(b["Last Name"].toLowerCase());
+  //     return a["Last Name"].localeCompare(b["Last Name"], undefined, {sensitivity: 'base'});
+  // });
+  let sortableEditors = [];
+  let unsortableEditors = [];
+  for (i = 0; i < arrayEditors.length; i++) {
+    if (
+      arrayEditors[i]["Journal Name"] ===
+        "The Journal of the American Society for Mass Spectrometry" &&
+      arrayEditors[i]["Masthead Category"] === "Board of Directors"
+    ) {
+      unsortableEditors.push(arrayEditors[i]);
+    } else {
+      // filter JPC deputy editors
+      if (jpcFilter != "") {
+        const dataJPC = await getJPCfilter();
+        if (dataJPC[jpcFilter]) {
+          console.log(jpcFilter + " jpcFilter exists");
+          if (
+            arrayEditors[i]["Masthead Category"] === "Deputy Editor" &&
+            arrayEditors[i]["First Name"] !=
+              dataJPC[jpcFilter]["Deputy Editor"]["First Name"] &&
+            arrayEditors[i]["Last Name"] !=
+              dataJPC[jpcFilter]["Deputy Editor"]["Last Name"]
+          ) {
+            // console.log(arrayEditors[i]["First Name"] + " " + arrayEditors[i]["Last Name"] + " " + i + " filtered");
+          } else {
+            sortableEditors.push(arrayEditors[i]);
+          }
+        } else {
+          if (arrayEditors[i]["Masthead Category"] != "Deputy Editor") {
+            sortableEditors.push(arrayEditors[i]);
+          }
+        }
+      } else {
+        sortableEditors.push(arrayEditors[i]);
+      }
+    }
+  }
+
+  const sortedNames = sortableEditors.sort((a, b) => {
+    const result = a["Last Name"].localeCompare(b["Last Name"]);
+    return result !== 0
+      ? result
+      : a["First Name"].localeCompare(b["First Name"]);
+  });
+
+  let sortedArray = sortedNames;
+
+  // append jamsef board of directors
+  if (journalCoden === "jamsef") {
+    let jamsefBOD = await getJAMSEFbod();
+    if (jamsefBOD === null) {
+      sortedArray = $.merge($.merge([], sortedNames), unsortableEditors);
+    } else {
+      // console.log(jamsefBOD["data"]);
+      sortedArray = sortedArray.concat(jamsefBOD["data"]);
+      // console.log(sortedArray);
+    }
+  }
+
+  return sortedArray;
+}
+
+// display
+async function displayRoles(
+  roles,
+  roleSort,
+  editorsList,
+  coden,
+  excludeCurrentIssue,
+  eabOnly
+) {
+  let currentIssue = false;
+  let showDisclaimer = false;
+  // let disclaimerArray = ["National Institutes of Health"];
+  let disclaimerLink = $("<a></a>", {
+    class: "disclaimer-link",
+    href: "#disclaimer",
+    text: "*",
+  });
+  let disclaimerMessage = $("<p></p>", {
+    id: "disclaimer",
+    class: "disclaimer-message",
+    text: "* This member of the editorial team is serving in their personal capacity",
+  });
+  let disclaimerContainer = $("<div></div>", {
+    class: "disclaimer mt-5",
+  });
+  disclaimerContainer.append(disclaimerMessage);
+
+  // loop through available roles, pre-sorted order
+  for (i = 0; i < roles.length; i++) {
+    let displayRoleContainer,
+      displayRole,
+      editorDisplayContainer = "";
+    let editorsInRole = [];
+    let editorCount = 0;
+    let roleSortNum = 0;
+    let currentRoleProps;
+    let currentRoleMastheadDisplay;
+
+    currentRoleProps = roleSort.find((obj) => {
+      return obj["Masthead Category"] === roles[i];
+    });
+    roleSortNum = parseInt(currentRoleProps["Role Sort Number"]);
+    currentRoleMastheadDisplay = currentRoleProps["Display Category"];
+
+    // add link to current issue masthead
+    if (
+      eabOnly === false &&
+      roleSortNum > 110 &&
+      roleSortNum < 510 &&
+      currentIssue === false
+    ) {
+      if (excludeCurrentIssue === false) {
+        let currentIssueContainer = $("<div></div>", {
+          class: "role-container",
+        });
+        let currentIssueHeading = $("<h2></h2>", {
+          class: "role",
+          text: "Current Issue Editorial Masthead",
+        });
+        let currentIssueLinkContainer = $("<div></div>", {
+          class: "editor-info-container single-column",
+        });
+        let currentIssueLinkInfo = $("<div></div>", {
+          class: "editor-info",
+        });
+        let currentIssueLink = $("<a></a>", {
+          class: "masthead-link",
+          href: "/toc/aanmf6/current#Mastheads",
+          text: "View the Masthead in Current Issue",
+        });
+        $(currentIssueLinkInfo).append(currentIssueLink);
+        $(currentIssueLinkContainer).append(currentIssueLinkInfo);
+        $(currentIssueContainer)
+          .append(currentIssueHeading)
+          .append(currentIssueLinkContainer);
+        $("#masthead-display").append(currentIssueContainer);
+      }
+      currentIssue = true;
+    }
+
+    displayRoleContainer = $("<div></div>", {
+      class: "role-container",
+    });
+    displayRole = $("<h2></h2>", {
+      class: "role",
+      text: currentRoleMastheadDisplay,
+    });
+    editorDisplayContainer = $("<div></div>", {
+      class: "editor-info-container",
+    });
+
+    // inside role, loop through to find available editors
+    for (editorInfo = 0; editorInfo < editorsList.length; editorInfo++) {
+      if (editorsList[editorInfo]["Masthead Category"] === roles[i]) {
+        editorCount++;
+        editorsInRole.push(editorsList[editorInfo]);
+      }
+    }
+
+    // check if role needs to be plural
+    if (editorCount > 1) {
+      if (roleSortNum != 510 && roleSortNum != 511 && roleSortNum != 520) {
+        // ignore 'Senior Advisory Board', 'Senior Editorial Advisory Board', 'Editorial Advisory Board'
+        if (displayRole.text().indexOf("Editor") > -1) {
+          displayRole.text(function () {
+            return displayRole.text().replace("Editor", "Editors");
+          });
+        } else if (displayRole.text().indexOf("Ambassador") > -1) {
+          displayRole.text(function () {
+            return displayRole.text().replace("Ambassador", "Ambassadors");
+          });
+        }
+      }
+    } else {
+      // single item display using css column displays weird in firefox
+      $(editorDisplayContainer).addClass("single-column");
+    }
+
+    // only display sections with editors
+    if (editorCount > 0) {
+      // sort list of editor objects by last name within role
+      editorsInRole.sort(function (a, b) {
+        return a["Last Name"] - b["Last Name"];
+      });
+
+      for (editors = 0; editors < editorsInRole.length; editors++) {
+        let editorDisplay,
+          editorName,
+          editorInstitution,
+          editorCountry,
+          editorEmail = "";
+
+        // replace single quote in email and website
+        if (editorsInRole[editors]["Email"]) {
+          if (editorsInRole[editors]["Email"].includes("'") === true) {
+            editorsInRole[editors]["Email"] = editorsInRole[editors][
+              "Email"
+            ].replace("'", "&apos;");
+          }
+        }
+        if (editorsInRole[editors]["Website"]) {
+          if (editorsInRole[editors]["Website"].includes("'") === true) {
+            editorsInRole[editors]["Website"] = editorsInRole[editors][
+              "Website"
+            ].replace("'", "&apos;");
+          }
+        }
+
+        // display specific information for EIC
+        if (eabOnly === false && roleSortNum >= 100 && roleSortNum <= 205) {
+          editorDisplay = $("<div></div>", {
+            class: "editor-info",
+          });
+          editorName = $("<div></div>", {
+            class: "editor-name",
+            text:
+              editorsInRole[editors]["First Name"] +
+              " " +
+              editorsInRole[editors]["Last Name"],
+          });
+          if (
+            editorsInRole[editors]["Website"] &&
+            editorsInRole[editors]["Website"] != "n/a"
+          ) {
+            if (
+              editorsInRole[editors]["Website"].indexOf("https://") === -1 &&
+              editorsInRole[editors]["Website"].indexOf("http://") === -1
+            ) {
+              editorsInRole[editors]["Website"] =
+                "http://" + editorsInRole[editors]["Website"];
+            }
+            editorNameLinked = $("<a></a>", {
+              href: editorsInRole[editors]["Website"],
+              text:
+                editorsInRole[editors]["First Name"] +
+                " " +
+                editorsInRole[editors]["Last Name"],
+              title:
+                "Visit " +
+                editorsInRole[editors]["First Name"] +
+                " " +
+                editorsInRole[editors]["Last Name"] +
+                "'s website",
+            });
+            editorName.html(editorNameLinked);
+          }
+          editorInstitution = $("<div></div>", {
+            class: "editor-institution",
+            text: editorsInRole[editors]["Institution Name"],
+          });
+          if (editorsInRole[editors]["Masthead Disclaimer"] === true) {
+            showDisclaimer = true;
+            editorName.append(disclaimerLink);
+          }
+          editorCountry = $("<div></div>", {
+            class: "editor-country",
+            text: editorsInRole[editors]["Country"],
+          });
+          if (editorsInRole[editors]["Email"]) {
+            editorEmail = $("<div></div>", {
+              class: "editor-email",
+              html:
+                "E-mail: <a href='mailto:" +
+                editorsInRole[editors]["Email"] +
+                "' title='E-mail " +
+                editorsInRole[editors]["First Name"] +
+                " " +
+                editorsInRole[editors]["Last Name"] +
+                "'>" +
+                editorsInRole[editors]["Email"] +
+                "</a>",
+            });
+          }
+          $(editorDisplay)
+            .append(editorName)
+            .append(editorInstitution)
+            .append(editorCountry)
+            .append(editorEmail);
+        }
+        // display specific information for Editor Emeritus/as
+        else if (
+          eabOnly === false &&
+          (roleSortNum === 120 ||
+            roleSortNum === 121 ||
+            roleSortNum === 231 ||
+            roleSortNum === 232)
+        ) {
+          editorDisplay = $("<div></div>", {
+            class: "editor-info",
+          });
+          editorName = $("<div></div>", {
+            class: "editor-name",
+            text:
+              editorsInRole[editors]["First Name"] +
+              " " +
+              editorsInRole[editors]["Last Name"],
+          });
+          if (
+            editorsInRole[editors]["Website"] &&
+            editorsInRole[editors]["Website"] != "n/a"
+          ) {
+            if (
+              editorsInRole[editors]["Website"].indexOf("https://") === -1 &&
+              editorsInRole[editors]["Website"].indexOf("http://") === -1
+            ) {
+              editorsInRole[editors]["Website"] =
+                "http://" + editorsInRole[editors]["Website"];
+            }
+            editorNameLinked = $("<a></a>", {
+              href: editorsInRole[editors]["Website"],
+              text:
+                editorsInRole[editors]["First Name"] +
+                " " +
+                editorsInRole[editors]["Last Name"],
+              title:
+                "Visit " +
+                editorsInRole[editors]["First Name"] +
+                " " +
+                editorsInRole[editors]["Last Name"] +
+                "'s website",
+            });
+            editorName.html(editorNameLinked);
+          }
+          editorInstitution = $("<div></div>", {
+            class: "editor-institution",
+            text: editorsInRole[editors]["Institution Name"],
+          });
+          if (editorsInRole[editors]["Masthead Disclaimer"] === true) {
+            showDisclaimer = true;
+            editorName.append(disclaimerLink);
+          }
+          editorCountry = $("<div></div>", {
+            class: "editor-country",
+            text: editorsInRole[editors]["Country"],
+          });
+          $(editorDisplay)
+            .append(editorName)
+            .append(editorInstitution)
+            .append(editorCountry);
+        }
+        // display specific information for Managing Editor
+        else if (
+          eabOnly === false &&
+          roleSortNum >= 320 &&
+          roleSortNum <= 410
+        ) {
+          editorDisplay = $("<div></div>", {
+            class: "editor-info",
+          });
+          if (
+            editorsInRole[editors]["First Name"] &&
+            editorsInRole[editors]["Last Name"]
+          ) {
+            editorName = $("<div></div>", {
+              class: "editor-name",
+              text:
+                editorsInRole[editors]["First Name"] +
+                " " +
+                editorsInRole[editors]["Last Name"],
+            });
+            if (
+              editorsInRole[editors]["Website"] &&
+              editorsInRole[editors]["Website"] != "n/a"
+            ) {
+              if (
+                editorsInRole[editors]["Website"].indexOf("https://") === -1 &&
+                editorsInRole[editors]["Website"].indexOf("http://") === -1
+              ) {
+                editorsInRole[editors]["Website"] =
+                  "http://" + editorsInRole[editors]["Website"];
+              }
+              editorNameLinked = $("<a></a>", {
+                href: editorsInRole[editors]["Website"],
+                text:
+                  editorsInRole[editors]["First Name"] +
+                  " " +
+                  editorsInRole[editors]["Last Name"],
+                title:
+                  "Visit " +
+                  editorsInRole[editors]["First Name"] +
+                  " " +
+                  editorsInRole[editors]["Last Name"] +
+                  "'s website",
+              });
+              editorName.html(editorNameLinked);
+            }
+            if (editorsInRole[editors]["Email"]) {
+              editorEmail = $("<div></div>", {
+                class: "editor-email",
+                html:
+                  "E-mail: <a href='mailto:" +
+                  editorsInRole[editors]["Email"] +
+                  "' title='E-mail " +
+                  editorsInRole[editors]["First Name"] +
+                  " " +
+                  editorsInRole[editors]["Last Name"] +
+                  "'>" +
+                  editorsInRole[editors]["Email"] +
+                  "</a>",
+              });
+            }
+          } else {
+            editorName = $("<div></div>", {
+              class: "editor-name",
+            });
+            if (editorsInRole[editors]["Email"]) {
+              editorEmail = $("<div></div>", {
+                class: "editor-email",
+                html:
+                  "E-mail: <a href='mailto:" +
+                  editorsInRole[editors]["Email"] +
+                  "' title='E-mail " +
+                  currentRoleMastheadDisplay +
+                  "'>" +
+                  editorsInRole[editors]["Email"] +
+                  "</a>",
+              });
+            }
+          }
+          editorInstitution = $("<div></div>", {
+            class: "editor-institution",
+            text: editorsInRole[editors]["Institution Name"],
+          });
+          if (editorsInRole[editors]["Masthead Disclaimer"] === true) {
+            showDisclaimer = true;
+            editorName.append(disclaimerLink);
+          }
+          editorCountry = $("<div></div>", {
+            class: "editor-country",
+            text: editorsInRole[editors]["Country"],
+          });
+
+          $(editorDisplay)
+            .append(editorName)
+            .append(editorInstitution)
+            .append(editorCountry)
+            .append(editorEmail);
+        }
+        // display specific information for Associate Editors
+        else if (
+          eabOnly === false &&
+          roleSortNum >= 205 &&
+          roleSortNum < 510 &&
+          roleSortNum != 260 &&
+          roleSortNum != 231 &&
+          roleSortNum != 232
+        ) {
+          editorDisplay = $("<div></div>", {
+            class: "editor-info",
+          });
+          editorName = $("<div></div>", {
+            class: "editor-name",
+            text:
+              editorsInRole[editors]["First Name"] +
+              " " +
+              editorsInRole[editors]["Last Name"],
+          });
+          if (
+            editorsInRole[editors]["Website"] &&
+            editorsInRole[editors]["Website"] != "n/a"
+          ) {
+            if (
+              editorsInRole[editors]["Website"].indexOf("https://") === -1 &&
+              editorsInRole[editors]["Website"].indexOf("http://") === -1
+            ) {
+              editorsInRole[editors]["Website"] =
+                "http://" + editorsInRole[editors]["Website"];
+            }
+            editorNameLinked = $("<a></a>", {
+              href: editorsInRole[editors]["Website"],
+              text:
+                editorsInRole[editors]["First Name"] +
+                " " +
+                editorsInRole[editors]["Last Name"],
+              title:
+                "Visit " +
+                editorsInRole[editors]["First Name"] +
+                " " +
+                editorsInRole[editors]["Last Name"] +
+                "'s website",
+            });
+            editorName.html(editorNameLinked);
+          }
+          editorInstitution = $("<div></div>", {
+            class: "editor-institution",
+            text: editorsInRole[editors]["Institution Name"],
+          });
+          if (editorsInRole[editors]["Masthead Disclaimer"] === true) {
+            showDisclaimer = true;
+            editorName.append(disclaimerLink);
+          }
+          editorCountry = $("<div></div>", {
+            class: "editor-country",
+            text: editorsInRole[editors]["Country"],
+          });
+          if (editorsInRole[editors]["Email"]) {
+            editorEmail = $("<div></div>", {
+              class: "editor-email",
+              html:
+                "E-mail: <a href='mailto:" +
+                editorsInRole[editors]["Email"] +
+                "' title='E-mail " +
+                editorsInRole[editors]["First Name"] +
+                " " +
+                editorsInRole[editors]["Last Name"] +
+                "'>" +
+                editorsInRole[editors]["Email"] +
+                "</a>",
+            });
+          }
+          $(editorDisplay)
+            .append(editorName)
+            .append(editorInstitution)
+            .append(editorCountry)
+            .append(editorEmail);
+        }
+        // display specific information for EAB
+        else if (
+          (roleSortNum >= 510 || roleSortNum === 260) &&
+          roleSortNum != 580
+        ) {
+          editorDisplay = $("<div></div>", {
+            class: "editor-info",
+          });
+          editorName = $("<div></div>", {
+            class: "editor-name",
+            text:
+              editorsInRole[editors]["First Name"] +
+              " " +
+              editorsInRole[editors]["Last Name"],
+          });
+          if (
+            editorsInRole[editors]["Website"] &&
+            editorsInRole[editors]["Website"] != "n/a"
+          ) {
+            if (
+              editorsInRole[editors]["Website"].indexOf("https://") === -1 &&
+              editorsInRole[editors]["Website"].indexOf("http://") === -1
+            ) {
+              editorsInRole[editors]["Website"] =
+                "http://" + editorsInRole[editors]["Website"];
+            }
+            editorNameLinked = $("<a></a>", {
+              href: editorsInRole[editors]["Website"],
+              text:
+                editorsInRole[editors]["First Name"] +
+                " " +
+                editorsInRole[editors]["Last Name"],
+              title:
+                "Visit " +
+                editorsInRole[editors]["First Name"] +
+                " " +
+                editorsInRole[editors]["Last Name"] +
+                "'s website",
+            });
+            editorName.html(editorNameLinked);
+          }
+          editorInstitution = $("<div></div>", {
+            class: "editor-institution",
+            text: editorsInRole[editors]["Institution Name"],
+          });
+          if (editorsInRole[editors]["Masthead Disclaimer"] === true) {
+            showDisclaimer = true;
+            editorName.append(disclaimerLink);
+          }
+          editorCountry = $("<div></div>", {
+            class: "editor-country",
+            text: editorsInRole[editors]["Country"],
+          });
+          $(editorDisplay)
+            .append(editorName)
+            .append(editorInstitution)
+            .append(editorCountry);
+        }
+        // display specific information for Board of Directors
+        else if (roleSortNum === 580) {
+          editorDisplay = $("<div></div>", {
+            class: "editor-info",
+          });
+          editorTitle = $("<div></div>", {
+            class: "editor-title",
+            text: editorsInRole[editors]["Title"],
+          });
+          editorName = $("<div></div>", {
+            class: "editor-name",
+            text:
+              editorsInRole[editors]["First Name"] +
+              " " +
+              editorsInRole[editors]["Last Name"],
+          });
+          if (
+            editorsInRole[editors]["Website"] &&
+            editorsInRole[editors]["Website"] != "n/a"
+          ) {
+            if (
+              editorsInRole[editors]["Website"].indexOf("https://") === -1 &&
+              editorsInRole[editors]["Website"].indexOf("http://") === -1
+            ) {
+              editorsInRole[editors]["Website"] =
+                "http://" + editorsInRole[editors]["Website"];
+            }
+            editorNameLinked = $("<a></a>", {
+              href: editorsInRole[editors]["Website"],
+              text:
+                editorsInRole[editors]["First Name"] +
+                " " +
+                editorsInRole[editors]["Last Name"],
+              title:
+                "Visit " +
+                editorsInRole[editors]["First Name"] +
+                " " +
+                editorsInRole[editors]["Last Name"] +
+                "'s website",
+            });
+            editorName.html(editorNameLinked);
+          }
+          editorInstitution = $("<div></div>", {
+            class: "editor-institution",
+            text: editorsInRole[editors]["Institution Name"],
+          });
+          if (editorsInRole[editors]["Masthead Disclaimer"] === true) {
+            showDisclaimer = true;
+            editorName.append(disclaimerLink);
+          }
+          editorCountry = $("<div></div>", {
+            class: "editor-country",
+            text: editorsInRole[editors]["Country"],
+          });
+          $(editorDisplay)
+            .append(editorTitle)
+            .append(editorName)
+            .append(editorInstitution)
+            .append(editorCountry);
+        }
+        // add name to editor name container
+        $(editorDisplayContainer).append(editorDisplay);
+      }
+
+      if (eabOnly === true) {
+        if (roleSortNum >= 510 || roleSortNum === 260) {
+          $(displayRoleContainer).append(displayRole);
+          // add editor name container to role container
+          $(displayRoleContainer).append(editorDisplayContainer);
+          // add role container to page
+          $("#masthead-display").append(displayRoleContainer);
+        }
+      } else {
+        // add role to container
+        $(displayRoleContainer).append(displayRole);
+        // add editor name container to role container
+        $(displayRoleContainer).append(editorDisplayContainer);
+        // add role container to page
+        $("#masthead-display").append(displayRoleContainer);
+      }
+      if (showDisclaimer === true) {
+        $("#masthead-display").append(disclaimerContainer);
+      }
+    }
+  }
+}
+
+render(route);
+getMastheadJson(route, jpcFilter);

@@ -57,11 +57,11 @@ p {
     width: 100%;
 }
 
-.sc-custom-wrapper-header{
-     width: 100%;
+.sc-custom-wrapper-header {
+    width: 100%;
 }
 
-.sc-custom-wrapper-mdw{
+.sc-custom-wrapper-mdw {
     display: grid;
     grid-template-columns: 60% 40%;
     gap: 1rem;
@@ -193,8 +193,7 @@ p {
 .sc-editors__de-label,
 .sc-metrics__impact-label,
 .sc-metrics__cites-label,
-.sc-metrics__citescore-label
-{
+.sc-metrics__citescore-label {
     font-weight: var(--font-weight-600);
 }
 
@@ -255,9 +254,7 @@ h5 {
 }
 
 
-@media (max-width: 1280px) {
-
-}
+@media (max-width: 1280px) {}
 
 @media (min-width: 551px) and (max-width: 767px) {
     .sc-header__wrapper {
@@ -291,7 +288,7 @@ h5 {
 }
 
 @media (max-width: 550px) {
-    .sc-custom-wrapper-mdw{
+    .sc-custom-wrapper-mdw {
         grid-template-columns: 100%;
     }
 
@@ -411,4 +408,79 @@ h5 {
 
 .sc-cta__submit-wrap {
     min-width: max-content;
+}
+
+.sc-footer {
+    padding: 1rem 8rem 1rem 7rem;
+}
+
+.sc-foot-title {
+    font-weight: 600;
+    font-size: 24px;
+}
+
+.sc-foot-subtitle-link {
+    margin-top: 8px;
+    display: inline-block;
+}
+
+.sc-foot-subtitle {
+    font-weight: 400;
+    font-size: 16px;
+    color: var(--color-primary-blue-500);
+    text-decoration: underline;
+}
+
+.sc-editor__people {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    margin-top: 40px;
+}
+
+.sc-editor__person {
+    display: flex;
+    column-gap: 16px;
+    margin: 14px 14px 14px 0;
+    align-items: center;
+}
+
+.sc-editor__avatar {
+    width: 80px;
+    height: 80px;
+    border-radius: 50%;
+}
+
+.sc-editor__person img {
+    width: 80px;
+    height: 80px;
+    border-radius: 50%;
+    object-fit: cover;
+    flex-shrink: 0;
+}
+
+.sc-editor__details {
+    display: grid;
+    row-gap: 4px;
+}
+
+.sc-editor__affil,
+.sc-editor__country,
+.sc-editor__email {
+    font-size: var(--font-size-16);
+    font-weight: 500;
+    color: #333333;
+}
+
+.sc-editor__email {
+    font-size: var(--font-size-16);
+    font-weight: 500;
+    color: var(--color-primary-blue-500);
+    text-decoration: underline;
+
+}
+
+.sc-email-container {
+    display: flex;
+    align-items: center;
+    gap: 2px;
 }
