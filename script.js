@@ -1,13 +1,11 @@
 let JSON_DIR;
 let ASSETS_DIR;
-let route = "aamick";
+let route = "jpcbfk";
 let jpcFilter = "";
 let environment = "local";
 let dataJPC;
-if (route === "jpcafh" || route === "jpcbfk" || route === "jpccck") {
-  jpcFilter = route;
-  route = "jpchax";
-}
+let editorInChiefName = "";
+let deputyEditorName = "";
 
 if (environment === "local") {
   JSON_DIR = "../json/current";
@@ -30,6 +28,15 @@ let journalInfoJson;
 const MASTHEAD_BASE =
   "https://raw.githubusercontent.com/DSCO-Support/JournalMastheads/refs/heads/main/mastheads/";
 const BASE_URL = "https://pubs.acs.org";
+
+handleJPCLogic();
+
+async function handleJPCLogic() {
+  if (route === "jpcafh" || route === "jpcbfk" || route === "jpccck") {
+    jpcFilter = route;
+    route = "jpchax";
+  }
+}
 
 async function getMastheadJson(journalCoden, jpcFilter) {
   try {
@@ -150,18 +157,6 @@ function updateEditorInfo(person, editorInfo, role) {
   const cfg = map[role];
   if (!cfg) return;
 
-  const name =
-    person?.["Display Name"] ||
-    [person?.["First Name"], person?.["Last Name"]].filter(Boolean).join(" ") ||
-    person?.["Name"] ||
-    person?.name ||
-    "";
-
-  if (name) {
-    setText(cfg.mainNameId, name || "—");
-    setText(cfg.sideNameId, name || "—");
-    //setImage(editorInfo, name, cfg);
-  }
 
   if (person) {
     setWebsiteLink(cfg.sideNameId, person);
@@ -221,6 +216,7 @@ async function loadMastheadAndRenderEditors(code, editorInfo) {
     rows.forEach((person) => {
       if (person?.["Masthead Category"] === "Editor-in-Chief") {
         hasEditorInChief = true;
+        console.log(person, editorInfo);
         updateEditorInfo(person, editorInfo, "Editor-in-Chief");
       }
     });
@@ -231,6 +227,7 @@ async function loadMastheadAndRenderEditors(code, editorInfo) {
         updateEditorInfo(person, editorInfo, "Deputy Editor");
       }
     });
+    // }
 
     adjustVisibility(hasEditorInChief, hasDeputyEditor);
   } catch (err) {
@@ -559,10 +556,6 @@ async function createRoles(arrayEditors, arraySortOrder) {
 }
 
 async function sortByLastName(arrayEditors, jpcFilter, journalCoden) {
-  // arrayEditors.sort(function(a,b){
-  //     // return a["Last Name"].toLowerCase().localeCompare(b["Last Name"].toLowerCase());
-  //     return a["Last Name"].localeCompare(b["Last Name"], undefined, {sensitivity: 'base'});
-  // });
   let sortableEditors = [];
   let unsortableEditors = [];
   for (i = 0; i < arrayEditors.length; i++) {
@@ -573,7 +566,6 @@ async function sortByLastName(arrayEditors, jpcFilter, journalCoden) {
     ) {
       unsortableEditors.push(arrayEditors[i]);
     } else {
-      // filter JPC deputy editors
       if (jpcFilter != "") {
         if (!dataJPC) {
           dataJPC = await getJPCfilter();
@@ -587,7 +579,6 @@ async function sortByLastName(arrayEditors, jpcFilter, journalCoden) {
             arrayEditors[i]["Last Name"] !=
               dataJPC[jpcFilter]["Deputy Editor"]["Last Name"]
           ) {
-            // console.log(arrayEditors[i]["First Name"] + " " + arrayEditors[i]["Last Name"] + " " + i + " filtered");
           } else {
             sortableEditors.push(arrayEditors[i]);
           }
@@ -785,6 +776,16 @@ async function displayRoles(
             editorsInRole[editors]["Masthead Category"] === "Editor-in-Chief" ||
             editorsInRole[editors]["Masthead Category"] === "Deputy Editor"
           ) {
+            if (
+              editorsInRole[editors]["Masthead Category"] === "Editor-in-Chief"
+            ) {
+              setText("sc-editors__eic-value", editorFullName || "—");
+            } else if (
+              editorsInRole[editors]["Masthead Category"] === "Deputy Editor"
+            ) {
+              setText("sc-editors__de-value", editorFullName || "—");
+            }
+
             if (journalInfoJson) {
               editorImageContainer = document.createElement("div");
               editorImage = document.createElement("img");
@@ -1291,5 +1292,5 @@ async function getJAMSEFbod() {
   }
 }
 
-render(route);
 getMastheadJson(route, jpcFilter);
+render(route);
