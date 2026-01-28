@@ -1,4 +1,745 @@
-let JSON_DIR;
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ACS Agricultural Science & Technology</title>
+    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="fonts.googleapis.com" rel="stylesheet">
+
+    <style>
+        * {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+    font-family: 'Roboto', sans-serif !important;
+}
+
+:root {
+    --font-size-8: 0.5rem;
+    --font-size-12: 0.75rem;
+    --font-size-14: 0.875rem;
+    --font-size-15: 0.9375rem;
+    --font-size-16: 1rem;
+    --font-size-24: 1.5rem;
+    --font-size-32: 2rem;
+    --font-size-64: 4rem;
+    --main-section-bg-color: #081B33;
+    --font-weight-400: 400;
+    --font-weight-500: 500;
+    --font-weight-600: 600;
+    --font-color: #464748;
+    --text-color-dark: #333333;
+    --text-color-light: #5C5C5C;
+    --link-color: #3361B8;
+    --rounded-sm: 4px;
+    --rounded-md: 8px;
+    --color-primary-blue-500: #003AAD;
+    --color-primary-blue-50: #E5EBF7;
+    --color-yellow: #FDC82F;
+    --color-yellow-hover: #FFAD00;
+    --color-yellow-border: #f8c94d;
+    --color-yellow-bg: rgba(255, 250, 232, 0.20);
+    --spacing-sm: 0.5rem;
+    --spacing-md: 1rem;
+    --spacing-lg: 1.5rem;
+    --spacing-xl: 2rem;
+    --max-width-content: 1300px;
+    --max-width-container: 1150px;
+    --transition-default: 300ms ease-out;
+    --shadow-dropdown: 0px 8px 16px 0px rgba(0, 0, 0, 0.2);
+}
+
+html {
+    font-size: 16px;
+}
+
+p {
+    overflow-wrap: break-word;
+}
+
+.column {
+    float: none;
+    max-width: var(--max-width-content);
+    margin: 0 auto;
+    padding: 0 var(--spacing-md);
+}
+
+.container {
+    max-width: var(--max-width-container);
+    margin: 0 auto;
+    padding: var(--spacing-lg);
+}
+
+.sc-header__wrapper {
+    padding: var(--spacing-md) 8rem var(--spacing-md) 7rem;
+    display: flex;
+    align-items: center;
+    margin: 0 auto;
+    background-color: #ffffff;
+}
+
+.sc-header__title {
+    font-size: var(--font-size-24);
+    font-weight: var(--font-weight-600);
+    width: 100%;
+}
+
+.sc-custom-wrapper-header {
+    width: 100%;
+}
+
+.sc-custom-wrapper-mdw {
+    display: grid;
+    grid-template-columns: 60% 40%;
+    gap: var(--spacing-md);
+    align-items: flex-start;
+}
+
+.sc-mdw {
+    background: var(--main-section-bg-color);
+    color: #fff;
+    margin: 0 auto;
+    padding: var(--spacing-lg) 8rem var(--spacing-lg) 7rem;
+}
+
+.sc-mdw__left {
+    display: flex;
+    flex-direction: column;
+    gap: var(--font-size-24);
+    min-width: 0;
+    max-width: 75%;
+}
+
+.sc-mdw__blurb-value {
+    font-size: var(--font-size-16);
+    line-height: 1.5;
+    display: inline-block;
+    font-weight: var(--font-weight-400);
+}
+
+#viewEditorsMainSection {
+    text-decoration: underline;
+}
+
+.sc-metrics__cites-value,
+.sc-metrics__impact-value,
+.sc-metrics__citescore-value {
+    font-weight: var(--font-weight-400);
+}
+
+.sc-editors__line {
+    margin: 0;
+    font-size: var(--font-size-16);
+    line-height: 1.8rem;
+    cursor: pointer;
+    max-width: max-content;
+}
+
+.sc-editors__link {
+    color: #fff;
+    font-size: var(--font-size-16);
+    text-decoration: underline;
+    display: inline-block;
+    padding: 0;
+}
+
+.sc-cta {
+    display: grid;
+    gap: 16px;
+    align-items: center;
+    grid-template-columns: minmax(160px, 1fr) minmax(120px, 0.7fr) minmax(155px, 1fr);
+    max-width: 55%;
+}
+
+.sc-cta__submit {
+    background: var(--color-yellow);
+    border: none;
+    padding: 10px;
+    border-radius: var(--rounded-sm);
+    font-size: var(--font-size-16);
+    cursor: pointer;
+    font-weight: var(--font-weight-600);
+    white-space: nowrap;
+    color: var(--text-color-dark);
+    transition: background-color var(--transition-default);
+    height: 40px;
+    text-decoration: none;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.sc-cta__alerts {
+    background: transparent;
+    border: 2px solid var(--color-yellow-border);
+    color: var(--color-yellow-border);
+    padding: 8px 18px;
+    border-radius: var(--rounded-sm);
+    cursor: pointer;
+    font-size: var(--font-size-15);
+    white-space: nowrap;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    height: 40px;
+    min-width: 100%;
+    transition: all var(--transition-default);
+}
+
+.sc-cta__submit:hover {
+    background: var(--color-yellow-hover);
+}
+
+.sc-cta__alerts:hover,
+.sc-related-journals:hover {
+    background: var(--color-yellow-bg);
+}
+
+.sc-cta__alert-wrap {
+    display: inline-block;
+    text-decoration: none;
+    min-width: 100%;
+}
+
+.sc-cta__alerts img {
+    margin-right: 5px;
+}
+
+.sc-reljournals {
+    margin-left: 0;
+    cursor: pointer;
+}
+
+.relatedElement option {
+    background-color: var(--main-section-bg-color);
+}
+
+.sc-editors__eic-label,
+.sc-editors__de-label,
+.sc-metrics__impact-label,
+.sc-metrics__cites-label,
+.sc-metrics__citescore-label {
+    font-weight: var(--font-weight-600);
+}
+
+.infoForAuthors {
+    background-color: #ffffff;
+    color: #0039A6;
+    border: 1.5px solid #0039A6;
+    border-radius: var(--rounded-sm);
+    padding: 10px;
+    font-weight: var(--font-weight-600);
+    font-size: var(--font-size-16);
+    transition: background-color var(--transition-default);
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    height: 40px;
+}
+
+.infoForAuthors:hover {
+    background: var(--color-primary-blue-50);
+}
+
+.sc-index__list li {
+    font-size: var(--font-size-16);
+    font-weight: var(--font-weight-400);
+    margin-top: 5px;
+}
+
+.sc-metrics-note {
+    margin-top: 10px;
+    font-size: var(--font-size-12);
+    color: var(--text-color-light);
+}
+
+.person-info {
+    flex: 1;
+}
+
+.related {
+    font-size: var(--font-size-14);
+    color: yellow;
+}
+
+aside {
+    padding-left: 15px;
+}
+
+h5 {
+    font-size: var(--fs-h3);
+    gap: 10px;
+    margin-bottom: 0;
+}
+
+.sc-custom-select {
+    position: relative;
+    width: 100%;
+    height: 40px;
+}
+
+.sc-related-journals {
+    cursor: pointer;
+    width: 100%;
+    text-align: center;
+    color: var(--color-yellow-border);
+    font-size: var(--font-size-16);
+    text-decoration: none;
+    margin-left: auto;
+    white-space: nowrap;
+    background-color: transparent;
+    padding: 8px 10px;
+    border: none;
+    height: 40px;
+    transition: all var(--transition-default);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.sc-select__menu {
+    display: none;
+    position: absolute;
+    background-color: #f9f9f9;
+    min-width: 100%;
+    box-shadow: var(--shadow-dropdown);
+    z-index: 999;
+    list-style-type: none;
+    padding: 0;
+    margin: 0;
+    max-height: 35vh;
+    overflow-y: auto;
+    border-radius: var(--rounded-md);
+    width: max-content;
+}
+
+.sc-select__menu li {
+    color: black;
+    padding: 12px 15px;
+    text-decoration: none;
+    display: block;
+    cursor: pointer;
+    transition: background-color var(--transition-default);
+}
+
+.sc-select__menu li a {
+    color: var(--text-color-dark);
+    text-decoration: none;
+    width: 100%;
+    height: 100%;
+    display: inline-block;
+}
+
+.sc-select__menu li:hover {
+    background-color: #e7e7e7;
+}
+
+.sc-custom-select.active .sc-select__menu {
+    display: block;
+}
+
+.sc-select__arrow {
+    margin-left: 4px;
+}
+
+.arrow_img {
+    color: white;
+}
+
+.sc-cta__submit-wrap {
+    min-width: max-content;
+}
+
+.sc-footer {
+    padding: var(--spacing-md) 8rem var(--spacing-md) 7rem;
+}
+
+.sc-foot-title {
+    font-weight: var(--font-weight-600);
+    font-size: var(--font-size-24);
+    color: var(--font-color);
+}
+
+.editor-name {
+    font-weight: var(--font-weight-600);
+}
+
+.editor-name a {
+    color: var(--link-color);
+    font-weight: var(--font-weight-600);
+    font-size: var(--font-size-16);
+    font-weight: var(--font-weight-600);
+}
+
+.role-container {
+    margin-top: 40px;
+}
+
+.editor-institution,
+.editor-country,
+.editor-email {
+    font-weight: var(--font-weight-500);
+    font-size: var(--font-size-16);
+}
+
+.editor-email a {
+    color: var(--link-color);
+}
+
+#masthead-display {
+    color: var(--text-color-dark);
+}
+
+.sc-foot-subtitle-link {
+    margin-top: 8px;
+    display: inline-block;
+}
+
+.sc-foot-subtitle {
+    font-weight: var(--font-weight-400);
+    font-size: var(--font-size-16);
+    text-decoration: underline;
+    color: var(--link-color);
+}
+
+.sc-editor__people {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: var(--spacing-md);
+}
+
+.sc-editor__person,
+.editor-information-container {
+    display: flex;
+    column-gap: 16px;
+    margin: 14px 14px 14px 0;
+    align-items: center;
+}
+
+.editor-info-container {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 24px;
+    margin-top: 20px;
+}
+
+#currentIssueContainer{
+    display: none;
+}
+
+.sc-editor__avatar,
+.sc-editor__person img {
+    width: 80px;
+    height: 80px;
+    border-radius: 50%;
+    object-fit: cover;
+    flex-shrink: 0;
+}
+
+.sc-editor__details,
+.editor-info {
+    display: grid;
+    row-gap: 4px;
+}
+
+.sc-editor__affil,
+.sc-editor__country {
+    font-size: var(--font-size-16);
+    font-weight: var(--font-weight-500);
+    color: var(--text-color-dark);
+}
+
+.sc-editor__email {
+    font-size: var(--font-size-16);
+    font-weight: var(--font-weight-500);
+    color: var(--color-primary-blue-500);
+    text-decoration: underline;
+}
+
+.sc-email-container {
+    display: flex;
+    align-items: center;
+    gap: 2px;
+}
+
+@media (max-width: 480px) {
+    .column {
+        padding: 0 var(--spacing-md);
+    }
+}
+
+@media (min-width: 551px) and (max-width: 767px) {
+    .sc-header__wrapper {
+        padding: var(--spacing-md) 4rem var(--spacing-md) var(--spacing-xl);
+    }
+
+    .sc-mdw {
+        padding: var(--spacing-lg) var(--spacing-md) var(--spacing-lg) var(--spacing-xl);
+    }
+
+    .sc-reljournals {
+        margin-left: 0;
+        grid-column: span 10;
+    }
+
+    .sc-cta {
+        grid-template-columns: 1fr 1fr;
+        row-gap: 10px;
+        column-gap: 4px;
+        max-width: 100%;
+    }
+
+    .sc-cta__alert-wrap {
+        margin-left: 10px;
+    }
+
+    .sc-related-journals {
+        text-align: left !important;
+        padding-left: 0 !important;
+    }
+
+    .editor-info-container {
+        grid-template-columns: repeat(2, 1fr);
+    }
+
+    .sc-select__value{
+        width: 100%;
+    }
+
+    .sc-footer{
+        padding: var(--spacing-lg) var(--spacing-md) var(--spacing-lg) var(--spacing-xl);
+    }
+}
+
+@media (max-width: 550px) {
+    .sc-custom-wrapper-mdw {
+        grid-template-columns: 1fr;
+    }
+
+    .sc-header__wrapper {
+        padding: var(--spacing-md) 4rem var(--spacing-md) var(--spacing-xl);
+    }
+
+    .sc-mdw {
+        padding: var(--spacing-md) var(--spacing-lg) var(--spacing-lg) var(--spacing-xl);
+    }
+
+    .sc-reljournals {
+        margin-left: 0;
+        margin-top: 6px;
+        text-align: center;
+    }
+
+    .sc-related-journals {
+        width: 100%;
+        text-align: center;
+    }
+
+    .sc-cta {
+        grid-template-columns: 1fr;
+        max-width: 100%;
+    }
+
+    .sc-cta__submit,
+    .sc-cta__alerts {
+        width: 100%;
+        margin-left: 0;
+    }
+
+    .sc-cta__alert-wrap {
+        margin-left: 0;
+        margin-top: 6px;
+        max-width: 100%;
+    }
+
+    .sc-mdw__right {
+        margin-top: 10px;
+    }
+
+    .sc-editor__people {
+        grid-template-columns: 1fr;
+    }
+
+    .editor-info-container {
+        grid-template-columns: 1fr;
+    }
+
+    .sc-footer{
+        padding: var(--spacing-md) var(--spacing-lg) var(--spacing-lg) var(--spacing-xl);
+    }
+
+    .sc-mdw__left{
+        max-width: 100%;
+    }
+}
+
+@media (max-width: 375px) {
+
+    .sc-header__wrapper,
+    .sc-mdw,
+    .sc-footer {
+        padding-left: var(--spacing-md);
+        padding-right: var(--spacing-md);
+    }
+
+    .container {
+        padding: var(--spacing-md);
+    }
+}
+    </style>
+</head>
+
+<body>
+    <main>
+        <section id="custom-page-silverchair" class="custom-page-silverchair">
+            <div class="sc-header sc-header__wrapper" id="sc-header-wrapper" aria-labelledby="sc-header-title">
+                <div class="sc-custom-wrapper-header column">
+                    <h1 class="sc-header__title" id="sc-header__title" aria-live="polite"></h1>
+                </div>
+            </div>
+
+            <section class="sc-mdw" id="sc-mdw" aria-label="Article metadata">
+                <div class="sc-custom-wrapper-mdw column">
+                    <div class="sc-mdw__left" id="sc-mdw__left" aria-label="Metadata details">
+                        <section class="sc-mdw__blurb" id="sc-mdw__blurb" aria-label="Journal blurb">
+                            <p class="sc-mdw__blurb-value" id="sc-mdw__blurb-value" aria-live="polite"></p>
+                        </section>
+                        <section class="sc-editors" id="sc-editors" aria-label="Editorial board">
+
+                            <p class="sc-editors__line">
+                                <span class="sc-editors__eic-label" id="sc-editors__eic-label">
+                                    Editor-in-Chief:
+                                </span>
+                                <span class="sc-editors__eic-value" id="sc-editors__eic-value"
+                                    aria-labelledby="sc-editors__eic-label" aria-live="polite">
+                                </span>
+                            </p>
+                            <p class="sc-editors__line">
+                                <span class="sc-editors__de-label" id="sc-editors__de-label">
+                                    Deputy Editor:
+                                </span>
+                                <span class="sc-editors__de-value" id="sc-editors__de-value"
+                                    aria-labelledby="sc-editors__de-label" aria-live="polite">
+                                </span>
+                            </p>
+                            <p class="sc-editors__line">
+                                <a class="sc-editors__link" id="sc-editors__link" tabindex="0"
+                                    aria-label="View Editors & Editorial Board">
+                                    View Editors &amp; Editorial Board
+                                </a>
+                            </p>
+                        </section>
+
+                        <section class="sc-metrics" id="sc-metrics" aria-label="Journal metrics">
+                            <p class="sc-editors__line sc-metrics__line">
+                                <strong class="sc-metrics__impact-label" id="sc-metrics__impact-label">
+                                    2 Year Impact Factor:
+                                </strong>
+
+
+                                <span class="sc-metrics__impact-value" id="sc-metrics__impact-value"
+                                    aria-labelledby="sc-metrics__impact-label" aria-live="polite">
+                                </span>
+                                &nbsp;&nbsp;&nbsp;
+
+                                <strong class="sc-metrics__cites-label" id="sc-metrics__cites-label">
+                                    Citations:
+                                </strong>
+                                <span class="sc-metrics__cites-value" id="sc-metrics__cites-value"
+                                    aria-labelledby="sc-metrics__cites-label" aria-live="polite">
+                                </span>
+                                &nbsp;&nbsp;&nbsp;
+                                <strong class="sc-metrics__citescore-label" id="sc-metrics__citescore-label">
+                                    CiteScore:
+                                </strong>
+                                <span class="sc-metrics__citescore-value" id="sc-metrics__citescore-value"
+                                    aria-labelledby="sc-metrics__citescore-label" aria-live="polite">
+                                </span>
+                            </p>
+
+                            <p class="sc-metrics__line sc-editors__line">
+                                <a href="/journal-metrics" class="sc-editors__link">
+                                    View All
+                                    <span class="sc-metrics__year" aria-live="polite"></span>
+                                    Journal Metrics
+                                </a>
+                            </p>
+                        </section>
+
+                        <div class="sc-cta" aria-label="Actions">
+                            <a class="sc-cta__submit-wrap" href="https://publish.acs.org/" target="_blank"
+                                rel="noopener">
+                                <button class="sc-cta__submit" type="button" aria-label="Submit manuscript">
+                                    Submit Manuscript
+                                </button>
+                            </a>
+
+                            <a rel="noopener" class="sc-cta__alert-wrap" href="https://preferences.acs.org/"
+                                target="_blank">
+                                <button class="sc-cta__alerts" type="button" aria-label="Get alerts">
+                                    <icon class="icon-alert-bell"></icon>
+                                    Get Alerts
+                                </button>
+                            </a>
+
+                            <div id="sc-reljournals" class="sc-reljournals" aria-label="Related journals">
+                                <div class="sc-custom-select" id="sc-custom-select" aria-expanded="false"
+                                    aria-haspopup="listbox" aria-controls="sc-select__menu"
+                                    aria-label="Related journals dropdown">
+                                    <button name="sc-related-journals" id="sc-related-journals"
+                                        class="sc-related-journals sc-select__toggle" aria-haspopup="listbox"
+                                        aria-expanded="false" aria-controls="sc-select__menu"
+                                        aria-label="Toggle related journals" aria-describedby="sc-select-value"
+                                        type="button">
+                                        <span class="sc-select__value" id="sc-select-value">
+                                            Related Journals
+                                        </span>
+                                        <span id="sc-select__arrow" class="sc-select__arrow" aria-hidden="true">
+                                            <!-- <img id="arrow_img" src="./assets/DownArrow.svg" alt="Arrow"
+                                                class="sc-select__arrow-img" /> -->
+                                            <span class="sc-select__arrow-img-wrapper">
+                                                <icon class="sc-select__arrow-img" id="sc-select__arrow-img"></icon>
+                                            </span>
+                                        </span>
+                                    </button>
+                                    <ul onclick="relatedJournalValueUpdate(event)" id="sc-select__menu"
+                                        class="sc-select__menu" aria-label="Related journals" tabindex="-1">
+                                    </ul>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <!-- <div class="sc-mdw__right">
+                        <section id="silverchair-widget-latest-issue-info">
+                            <h2>Silverchair Widget</h2>
+                            <p>Goes here</p>
+                        </section>
+                    </div> -->
+                </div>
+            </section>
+
+            <section class="sc-footer" id="sc-footer">
+                <div class="column sc-footer-custom-wrapper">
+                    <div id="currentIssueContainer" class="sc-footer-title-wrap">
+                        <h2 class="sc-foot-title">Editors & Editorial Board</h2>
+                        <a href="" class="sc-foot-subtitle-link">
+                            <h5 class="sc-foot-subtitle">View the Masthead in Current Issue</h5>
+                        </a>
+                    </div>
+
+                    <div class="" id="masthead-display"></div>
+                </div>
+            </section>
+        </section>
+    </main>
+    <script>
+        let JSON_DIR;
 let ASSETS_DIR;
 let route = "aamick";
 let jpcFilter = "";
@@ -1289,3 +2030,8 @@ function appendToMasthead(displayRoleContainer, i, isDeputyPresent) {
 
 render(route);
 getMastheadJson(route, jpcFilter);
+
+    </script>
+</body>
+
+</html>
