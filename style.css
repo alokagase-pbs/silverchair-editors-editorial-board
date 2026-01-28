@@ -487,10 +487,19 @@ h5 {
 
     .sc-related-journals {
         text-align: left !important;
+        padding-left: 0 !important;
     }
 
     .editor-info-container {
         grid-template-columns: repeat(2, 1fr);
+    }
+
+    .sc-select__value{
+        width: 100%;
+    }
+
+    .sc-footer{
+        padding: var(--spacing-lg) var(--spacing-md) var(--spacing-lg) var(--spacing-xl);
     }
 }
 
@@ -545,6 +554,10 @@ h5 {
 
     .editor-info-container {
         grid-template-columns: 1fr;
+    }
+
+    .sc-footer{
+        padding: var(--spacing-md) var(--spacing-lg) var(--spacing-lg) var(--spacing-xl);
     }
 }
 
