@@ -10,25 +10,26 @@ if (route === "jpcafh" || route === "jpcbfk" || route === "jpccck") {
 }
 
 if (environment === "local") {
-  JSON_DIR = "./json";
-  ASSETS_DIR = "./assets";
+  JSON_DIR = "../json/current";
+  ASSETS_DIR = "../assets";
 } else {
-  JSON_DIR = window.location.origin + "/DocumentLibrary/json";
-  ASSETS_DIR = window.location.origin + "/ImageLibrary/journal-editorial-board"
+  JSON_DIR = "/DocumentLibrary/json";
+  ASSETS_DIR = "/ImageLibrary/journal-editorial-board";
 }
+
 const INFO_FILE = `${JSON_DIR}/journal-info.json`;
 const METRICS_FILE = `${JSON_DIR}/journal_metrics.json`;
 const RELATED_JOURNALS = `${JSON_DIR}/relatedJournals.json`;
-const ROLE_SORT = `${JSON_DIR}/masthead-role-sort.json`;
-const MASTHEAD_EXCLUSIONS = `${JSON_DIR}/masthead-exclusions.json`;
-const JPC_FILTER = `${JSON_DIR}/jpc-filter-1712774473063.json`;
+const ROLE_SORT = `${JSON_DIR}/masthead/masthead-role-sort.json`;
+const MASTHEAD_EXCLUSIONS = `${JSON_DIR}/masthead/masthead-exclusions.json`;
+const JPC_FILTER = `${JSON_DIR}/masthead/jpc-filter.json`;
+const JAMSEF_BOD = `${JSON_DIR}/masthead/jamsef-bod.json`;
 const AVATAR_IMG = `${ASSETS_DIR}/avatar.svg`;
 let journalInfoJson;
 
 const MASTHEAD_BASE =
   "https://raw.githubusercontent.com/DSCO-Support/JournalMastheads/refs/heads/main/mastheads/";
 const BASE_URL = "https://pubs.acs.org";
-// const CORS_PROXY = "https://corsproxy.io/?url=";
 
 async function getMastheadJson(journalCoden, jpcFilter) {
   try {
@@ -40,7 +41,7 @@ async function getMastheadJson(journalCoden, jpcFilter) {
     let sortedJCI = await sortByLastName(
       dataJCI["data"],
       jpcFilter,
-      journalCoden
+      journalCoden,
     );
     let display = await displayRoles(
       roleList,
@@ -48,7 +49,7 @@ async function getMastheadJson(journalCoden, jpcFilter) {
       sortedJCI,
       journalCoden,
       exclusions[0],
-      exclusions[1]
+      exclusions[1],
     );
   } catch (error) {
     console.error("Error fetching " + journalCoden + ".json : ", error);
@@ -159,7 +160,7 @@ function updateEditorInfo(person, editorInfo, role) {
   if (name) {
     setText(cfg.mainNameId, name || "—");
     setText(cfg.sideNameId, name || "—");
-    setImage(editorInfo, name, cfg);
+    //setImage(editorInfo, name, cfg);
   }
 
   if (person) {
@@ -201,7 +202,7 @@ function adjustVisibility(hasEditorInChief, hasDeputyEditor) {
   }
   if (sideEICName?.closest("#sc-editor-foot__editorInChief-container")) {
     sideEICName.closest(
-      "#sc-editor-foot__editorInChief-container"
+      "#sc-editor-foot__editorInChief-container",
     ).style.display = hasEditorInChief ? "" : "none";
   }
   if (sideDEName?.closest("#sideSectionDeputyEditorContainer")) {
@@ -250,18 +251,17 @@ async function loadMastheadAndRenderEditors(code, editorInfo) {
 
 function findRelatedJournals(code, allJournalsArray) {
   return allJournalsArray.relatedJournals.find((journal) =>
-    journal.coden.includes(code)
+    journal.coden.includes(code),
   );
 }
 
 async function renderJournalForCoden(code, indexes) {
   const { infoIndex, metricsIndex, allJournalsArray } = indexes;
   journalInfoJson = infoIndex;
-  let relatedJournals = findRelatedJournals(code, allJournalsArray);
-  const info = getJournalInfo(infoIndex, code);
-  const metrics = getJournalMetrics(metricsIndex, code);
-
-  //const codenData = await fetchJSON(`${JSON_DIR}/${code}.json`);
+  let journalCode = jpcFilter ? jpcFilter : code;
+  let relatedJournals = findRelatedJournals(journalCode, allJournalsArray);
+  const info = getJournalInfo(infoIndex, journalCode);
+  const metrics = getJournalMetrics(metricsIndex, journalCode);
 
   setText("sc-header__title", metrics?.title ?? "—");
   setBlurbValue(metrics, info);
@@ -280,43 +280,43 @@ async function renderJournalForCoden(code, indexes) {
   setText("sc-metrics__impact-value", metrics?.impact2yr ?? "—");
   setText(
     "sc-metrics__cites-value",
-    formatNumber(metrics?.citations) ? formatNumber(metrics?.citations) : "NaN"
+    formatNumber(metrics?.citations) ? formatNumber(metrics?.citations) : "NaN",
   );
   setText(
     "sc-metrics__citescore-value",
-    metrics?.citescore ? metrics?.citescore : "NaN"
+    metrics?.citescore ? metrics?.citescore : "NaN",
   );
   setText(
     "sc-metrics__value--cites",
-    formatNumber(metrics?.citations) ?? "NaN"
+    formatNumber(metrics?.citations) ?? "NaN",
   );
   setText(
     "sc-metrics__value--two-if",
-    metrics?.impact2yr ? metrics?.impact2yr : "NaN"
+    metrics?.impact2yr ? metrics?.impact2yr : "NaN",
   );
   setText(
     "sc-metrics__value--five-if",
-    metrics?.impact5yr ? metrics?.impact5yr : "NaN"
+    metrics?.impact5yr ? metrics?.impact5yr : "NaN",
   );
   setText(
     "sc-metrics__value--citescore",
-    metrics?.citescore ? metrics?.citescore : "NaN"
+    metrics?.citescore ? metrics?.citescore : "NaN",
   );
   setText(
     "sc-metrics__value--days-asap",
-    metrics?.AcceptToASAP ? metrics?.AcceptToASAP : "NaN"
+    metrics?.AcceptToASAP ? metrics?.AcceptToASAP : "NaN",
   );
   setText(
     "sc-metrics__value--total-cites",
-    formatNumber(metrics?.citations) ?? "NaN"
+    formatNumber(metrics?.citations) ?? "NaN",
   );
   setText(
     "sc-metrics__value--days-first",
-    metrics?.SubToFDwPR ? metrics?.SubToFDwPR : "NaN"
+    metrics?.SubToFDwPR ? metrics?.SubToFDwPR : "NaN",
   );
   setText(
     "sc-metrics__value--days-accept",
-    metrics?.SubToAccept ? metrics?.SubToAccept : "NaN"
+    metrics?.SubToAccept ? metrics?.SubToAccept : "NaN",
   );
   setText("printEditionISSN", info?.issn ? info.issn : "");
   setText("webEditionISSN", info?.eissn ? info?.eissn : "");
@@ -408,29 +408,16 @@ async function loadIndexesOnce() {
 async function render(routeName) {
   const indexes = await loadIndexesOnce();
   console.log(indexes);
-  const knownCodens = new Set([
-    ...Object.keys(
-      (indexes.infoIndex.journalInfo ?? indexes.infoIndex)?.journal ?? {}
-    ),
-    ...Object.keys(
-      (indexes.metricsIndex.journal_metrics ?? indexes.metricsIndex)?.journal ??
-        {}
-    ),
-  ]);
 
-  if (knownCodens.has(routeName)) {
-    showOnly("journal");
-    try {
-      await renderJournalForCoden(routeName, indexes);
-    } catch (err) {
-      console.error(err);
-    }
-    return;
-  }else{
-    
+  showOnly("journal");
+  try {
+    await renderJournalForCoden(routeName, indexes);
+  } catch (err) {
+    console.error(err);
   }
   console.warn(`Unknown route/coden: "${routeName}"`);
   document.getElementById("main").innerHTML = "<h1>404 Not Found</h1>";
+  return;
 }
 
 function openInNewTab(event, url) {
@@ -588,8 +575,8 @@ async function sortByLastName(arrayEditors, jpcFilter, journalCoden) {
     } else {
       // filter JPC deputy editors
       if (jpcFilter != "") {
-        if(!dataJPC){
-        dataJPC = await getJPCfilter();
+        if (!dataJPC) {
+          dataJPC = await getJPCfilter();
         }
         if (dataJPC[jpcFilter]) {
           console.log(jpcFilter + " jpcFilter exists");
@@ -646,7 +633,7 @@ async function displayRoles(
   editorsList,
   coden,
   excludeCurrentIssue,
-  eabOnly
+  eabOnly,
 ) {
   let currentIssue = false;
   let showDisclaimer = false;
@@ -706,7 +693,7 @@ async function displayRoles(
     ) {
       if (excludeCurrentIssue === false) {
         let currentIssueContainer = document.getElementById(
-          "currentIssueContainer"
+          "currentIssueContainer",
         );
         currentIssueContainer.style.display = "block";
       }
@@ -744,12 +731,12 @@ async function displayRoles(
         if (displayRole.textContent.indexOf("Editor") > -1) {
           displayRole.textContent = displayRole.textContent.replace(
             "Editor",
-            "Editors"
+            "Editors",
           );
         } else if (displayRole.textContent.indexOf("Ambassador") > -1) {
           displayRole.textContent = displayRole.textContent.replace(
             "Ambassador",
-            "Ambassadors"
+            "Ambassadors",
           );
         }
       }
@@ -798,17 +785,17 @@ async function displayRoles(
             editorsInRole[editors]["Masthead Category"] === "Editor-in-Chief" ||
             editorsInRole[editors]["Masthead Category"] === "Deputy Editor"
           ) {
-            if(journalInfoJson){
-            editorImageContainer = document.createElement("div");
-            editorImage = document.createElement("img");
-            editorImage.src =
-              BASE_URL +
-              journalInfoJson.journalInfo.journal[coden].editorInfo[
-                editorFullName
-              ].imgUrl;
-            editorImage.classList.add("sc-editor__avatar");
-            editorImageContainer.appendChild(editorImage);
-            editorDisplayContainer.appendChild(editorImageContainer);
+            if (journalInfoJson) {
+              editorImageContainer = document.createElement("div");
+              editorImage = document.createElement("img");
+              editorImage.src =
+                BASE_URL +
+                journalInfoJson.journalInfo.journal[
+                  jpcFilter ? jpcFilter : coden
+                ].editorInfo[editorFullName].imgUrl;
+              editorImage.classList.add("sc-editor__avatar");
+              editorImageContainer.appendChild(editorImage);
+              editorDisplayContainer.appendChild(editorImageContainer);
             }
           }
 
@@ -1279,11 +1266,28 @@ function appendToMasthead(displayRoleContainer, i, isDeputyPresent) {
     mastheadDisplay.appendChild(displayRoleParentContainer);
   } else if (i === 1 && isDeputyPresent) {
     const existingParentContainer = document.getElementById(
-      "chiefEditorAndDeputyEditor"
+      "chiefEditorAndDeputyEditor",
     );
     existingParentContainer.appendChild(displayRoleContainer);
   } else {
     mastheadDisplay.appendChild(displayRoleContainer);
+  }
+}
+
+async function getJAMSEFbod() {
+  try {
+    const response = await fetch(JAMSEF_BOD);
+    if (!response.ok) {
+      // if (response.status === 404) {
+      // } else {
+      // }
+      throw new Error(response);
+    }
+    const dataJAMSEFbod = await response.json();
+    return dataJAMSEFbod;
+  } catch (error) {
+    console.error("Error fetching jamsef-bod.json :", error);
+    return null;
   }
 }
 
