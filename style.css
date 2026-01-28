@@ -559,6 +559,10 @@ h5 {
     .sc-footer{
         padding: var(--spacing-md) var(--spacing-lg) var(--spacing-lg) var(--spacing-xl);
     }
+
+    .sc-mdw__left{
+        max-width: 100%;
+    }
 }
 
 @media (max-width: 375px) {
