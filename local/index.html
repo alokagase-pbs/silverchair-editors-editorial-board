@@ -745,21 +745,19 @@
     <script>
         let JSON_DIR;
         let ASSETS_DIR;
-        let route = "jamsef";
+        let route = "";
         let jpcFilter = "";
         let environment = "local";
         let dataJPC;
-        if (route === "jpcafh" || route === "jpcbfk" || route === "jpccck") {
-            jpcFilter = route;
-            route = "jpchax";
-        }
 
         if (environment === "local") {
             JSON_DIR = "../json/current";
-            ASSETS_DIR = "./assets";
+            ASSETS_DIR = "../assets";
+            route = "aamick";
         } else {
             JSON_DIR = "/DocumentLibrary/json";
             ASSETS_DIR = "/ImageLibrary/journal-editorial-board";
+            route = getRouteFromURL();
         }
 
         const INFO_FILE = `${JSON_DIR}/journal-info.json`;
@@ -802,25 +800,17 @@
         }
 
         function updateEditorsHref() {
-            const el = document.getElementById("viewEditorsMainSection");
-            const el1 = document.getElementById("viewEditorsInSideBar");
-            const el2 = document.getElementById("currentIssuePub");
+            const el = document.getElementById("sc-editors__link");
             if (!el) return;
 
             const updatedRoute = String(route || "").replace(/^\/+|\/+$/g, "");
             if (!updatedRoute) return;
 
             if (el) {
-                el.setAttribute("href", `/${updatedRoute}/editors`);
+                el.setAttribute("href", `/${updatedRoute}/pages/Editorial_Board`);
             }
-            if (el1) {
-                el1.setAttribute("href", `/${updatedRoute}/editors`);
-            }
-            if (el2) {
-                el2.setAttribute("href", `/toc/${updatedRoute}/current#Mastheads`);
-            }
+
         }
-        updateEditorsHref();
 
         // --- Fetch helper ---
         async function fetchJSON(url) {
@@ -2045,8 +2035,81 @@
             }
         }
 
-        render(route);
-        getMastheadJson(route, jpcFilter);
+        function initializeCustomDropdowns() {
+            const customSelects =
+                document.querySelectorAll('.sc-custom-select');
+
+            customSelects.forEach((selectWrapper) => {
+                const selectBtn = selectWrapper.querySelector(
+                    '.sc-related-journals',
+                );
+                const arrowEl = document.getElementById(
+                    'sc-select__arrow-img',
+                );
+
+                if (!selectBtn || !arrowEl) return;
+
+                // Toggle dropdown visibility on button click
+                selectBtn.addEventListener('click', () => {
+                    selectWrapper.classList.toggle('active');
+
+                    if (selectWrapper.classList.contains('active')) {
+                        arrowEl.classList.remove('icon-general_arrow-down');
+                        arrowEl.classList.add('icon-arrow-right');
+                    } else {
+                        arrowEl.classList.remove('icon-arrow-right');
+                        arrowEl.classList.add('icon-general_arrow-down');
+                    }
+
+                    const expanded =
+                        selectBtn.getAttribute('aria-expanded') === 'true';
+                    selectBtn.setAttribute('aria-expanded', !expanded);
+                });
+
+                // Close dropdown when clicking outside
+                window.addEventListener('click', (e) => {
+                    if (!selectWrapper.contains(e.target)) {
+                        selectWrapper.classList.remove('active');
+                        arrowEl.classList.remove('icon-arrow-right');
+                        arrowEl.classList.add('icon-general_arrow-down');
+                        selectBtn.setAttribute('aria-expanded', 'false');
+                    }
+                });
+            });
+        }
+
+
+        function getRouteFromURL() {
+            const pathSegments = window.location.pathname.split('/');
+            return pathSegments[1];
+        }
+
+
+        async function handleJPCLogic() {
+            if (route === "jpcafh" || route === "jpcbfk" || route === "jpccck") {
+                jpcFilter = route;
+                route = "jpchax";
+            }
+        }
+
+
+
+        function runJournalEditorialBoardPageInit() {
+            handleJPCLogic();
+            updateEditorsHref();
+            initializeCustomDropdowns();
+            getMastheadJson(route, jpcFilter);
+            render(route);
+        }
+
+        if (document.readyState === 'loading') {
+            document.addEventListener(
+                'DOMContentLoaded',
+                runJournalEditorialBoardPageInit,
+            );
+        } else {
+            runJournalEditorialBoardPageInit();
+        }
 
     </script>
 </body>
